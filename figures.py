@@ -112,7 +112,8 @@ def search_architecture_figure(paper_title: str, out_dir: Path) -> str | None:
     Web-search for an architecture diagram for this paper using DuckDuckGo images.
     Returns local file path if a usable image is found, else None.
     """
-    from duckduckgo_search import DDGS
+    import time
+    from ddgs import DDGS
 
     out_dir = Path(out_dir)
     out_dir.mkdir(parents=True, exist_ok=True)
@@ -120,11 +121,19 @@ def search_architecture_figure(paper_title: str, out_dir: Path) -> str | None:
     query = f'"{paper_title}" architecture diagram'
     print(f"  🔍 Searching web for architecture figure: {query}")
 
-    try:
-        results = list(DDGS().images(query, max_results=15))
-    except Exception as e:
-        print(f"  ⚠️  Web image search failed: {e}")
-        return None
+    results = []
+    for attempt in range(3):
+        try:
+            results = list(DDGS().images(query, max_results=15))
+            break
+        except Exception as e:
+            if attempt < 2:
+                wait = 2 ** attempt  # 1s, 2s
+                print(f"  ⚠️  Search attempt {attempt + 1} failed ({e}), retrying in {wait}s...")
+                time.sleep(wait)
+            else:
+                print(f"  ⚠️  Web image search failed after 3 attempts: {e}")
+                return None
 
     for result in results:
         url = result.get("image", "")
