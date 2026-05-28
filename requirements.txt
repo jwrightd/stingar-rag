@@ -13,3 +13,4 @@ mutagen
 elevenlabs
 beautifulsoup4
 ddgs
+whisper-timestamped

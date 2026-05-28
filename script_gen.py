@@ -115,12 +115,91 @@ def _generate_slide(role: str, title: str, context_chunks: list[str], paper_titl
     }
 
 
+def generate_hook_text(paper_metadata: dict) -> str:
+    """
+    Generate a short punchy hook sentence (max 12 words) for the opening frame.
+    Creates a curiosity gap to maximise 3-second retention.
+    """
+    response = client.chat.completions.create(
+        model="gpt-4o",
+        messages=[
+            {
+                "role": "system",
+                "content": (
+                    "You write viral Instagram Reel hooks for ML paper explainers. "
+                    "Write ONE sentence, max 12 words. "
+                    "Create a curiosity gap — make the viewer feel they MUST keep watching. "
+                    "Use present tense. Be specific, bold, and provocative. "
+                    "Do NOT mention the paper title. Do NOT use hashtags. "
+                    "Examples: "
+                    "'This paper just rewrote how every LLM handles attention.' / "
+                    "'What if your model could learn from 10x less data?' / "
+                    "'The trick behind GPT that nobody talks about — explained.' "
+                    "Return only the sentence, no quotes."
+                ),
+            },
+            {
+                "role": "user",
+                "content": (
+                    f"Paper title: {paper_metadata['title']}\n"
+                    f"Abstract: {paper_metadata.get('abstract', '')[:500]}\n\n"
+                    "Write the hook sentence."
+                ),
+            },
+        ],
+    )
+    return response.choices[0].message.content.strip()
+
+
+def generate_caption(slides: list[dict], paper_metadata: dict) -> str:
+    """Generate an Instagram caption for the video using the finished slide narrations."""
+    narrations = "\n".join(
+        f"Slide {s['slide_number']} ({s['title']}): {s['narration']}"
+        for s in slides
+    )
+
+    response = client.chat.completions.create(
+        model="gpt-4o",
+        messages=[
+            {
+                "role": "system",
+                "content": (
+                    "You write punchy Instagram captions for 60-second ML paper explainer Reels. "
+                    "Format:\n"
+                    "Line 1: a bold hook (question or provocative statement, no hashtags)\n"
+                    "Blank line\n"
+                    "2-4 bullet lines using relevant emojis summarising what the viewer will learn\n"
+                    "Blank line\n"
+                    "A short closing line (e.g. 'Full breakdown in the Reel ↑')\n"
+                    "Blank line\n"
+                    "10-15 relevant hashtags on one line\n\n"
+                    "Keep the whole caption under 200 words. No markdown, no bold/italics."
+                ),
+            },
+            {
+                "role": "user",
+                "content": (
+                    f"Paper: {paper_metadata['title']}\n\n"
+                    f"Slide narrations:\n{narrations}\n\n"
+                    "Write the Instagram caption."
+                ),
+            },
+        ],
+    )
+
+    return response.choices[0].message.content.strip()
+
+
 def generate_script(collection, paper_metadata: dict) -> list[dict]:
     """
     Run targeted RAG queries for each slide topic, then generate
     narration + image prompt for each slide using GPT-4o.
-    Returns a list of 5 slide dicts.
+    Returns a list of 6 slide dicts. The first slide includes a hook_text key.
     """
+    print("  Generating hook text...")
+    hook_text = generate_hook_text(paper_metadata)
+    print(f"  🪝 Hook: {hook_text}")
+
     slides = []
     for i, slide_config in enumerate(SLIDE_QUERIES):
         print(f"  Generating slide {i + 1}/6: {slide_config['title']}...")
@@ -138,7 +217,7 @@ def generate_script(collection, paper_metadata: dict) -> list[dict]:
             paper_title=paper_metadata["title"],
         )
 
-        slides.append({
+        slide = {
             "slide_number": i + 1,
             "title": slide_config["title"],
             "role": slide_config["role"],
@@ -147,6 +226,9 @@ def generate_script(collection, paper_metadata: dict) -> list[dict]:
             "duration_seconds": None,
             "audio_path": None,
             "image_path": None,
-        })
+        }
+        if i == 0:
+            slide["hook_text"] = hook_text
+        slides.append(slide)
 
     return slides
