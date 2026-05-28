@@ -1,0 +1,14 @@
+arxiv
+pdfplumber
+chromadb
+openai>=2.0.0
+sentence-transformers
+moviepy
+Pillow
+python-dotenv
+schedule
+requests
+numpy
+mutagen
+elevenlabs
+beautifulsoup4
