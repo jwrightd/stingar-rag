@@ -7,6 +7,7 @@ from moviepy import (
     concatenate_videoclips,
     CompositeVideoClip,
     CompositeAudioClip,
+    concatenate_audioclips,
 )
 from PIL import Image, ImageDraw, ImageFont
 
@@ -327,15 +328,13 @@ def assemble_video(slides: list[dict], paper_metadata: dict, arxiv_id: str) -> s
     # Lo-fi background music
     if LOFI_PATH.exists():
         try:
-            music = AudioFileClip(str(LOFI_PATH))
-            total_dur = raw_video.duration
-            # Loop music if shorter than video
-            if music.duration < total_dur:
-                from moviepy import concatenate_audioclips
-                loops = int(total_dur / music.duration) + 1
-                music = concatenate_audioclips([music] * loops)
-            music = music.subclipped(0, total_dur).with_volume_scaled(0.12)
-            music = music.audio_fadein(1.0).audio_fadeout(1.5)
+            from moviepy.audio.fx import AudioFadeIn, AudioFadeOut, AudioLoop
+            music = (
+                AudioFileClip(str(LOFI_PATH))
+                .with_effects([AudioLoop(duration=raw_video.duration)])
+                .with_volume_scaled(0.15)
+                .with_effects([AudioFadeIn(1.0), AudioFadeOut(1.5)])
+            )
             mixed = CompositeAudioClip([raw_video.audio, music])
             final = raw_video.with_audio(mixed)
             print("  🎵 Lo-fi music mixed in")
