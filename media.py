@@ -55,7 +55,7 @@ def _get_mp3_duration(path: str) -> float:
     return audio.info.length
 
 
-def generate_media(slides: list[dict], arxiv_id: str, figures: list[str] | None = None, paper_title: str = "") -> list[dict]:
+def generate_media(slides: list[dict], arxiv_id: str, figures: list[str] | None = None) -> list[dict]:
     out_dir = Path("output") / arxiv_id
     out_dir.mkdir(parents=True, exist_ok=True)
 
@@ -79,26 +79,18 @@ def generate_media(slides: list[dict], arxiv_id: str, figures: list[str] | None 
         # --- Image ---
         image_path = str(out_dir / f"slide_{n}.png")
 
-        # Architecture slide: ONLY use scraped/web figure — never generate via AI
+        # Architecture slide: use scraped arXiv figure or gradient — never AI-generated
         if slide.get("role") == "architecture":
             import shutil
-            from figures import best_architecture_figure, search_architecture_figure
-            fig_path = None
+            from figures import best_architecture_figure
+            fig_path = best_architecture_figure(figures) if figures else None
 
-            # 1. Try scraped arXiv figures first
-            if figures:
-                fig_path = best_architecture_figure(figures)
-
-            # 2. Fall back to web image search
-            if not fig_path and paper_title:
-                fig_path = search_architecture_figure(paper_title, out_dir)
-
-            # 3. Last resort — gradient
             if fig_path:
                 shutil.copy(fig_path, image_path)
                 slide["image_path"] = image_path
+                print(f"    ✅ Using scraped paper figure")
             else:
-                print(f"    ⚠️  No figure found anywhere, using gradient fallback")
+                print(f"    ℹ️  No scraped figure available, using gradient fallback")
                 _make_gradient_image(slide, image_path, width=1080, height=1920)
                 slide["image_path"] = image_path
             continue

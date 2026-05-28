@@ -45,7 +45,7 @@ def run_pipeline(test: bool = False):
     print(f"✅ Script ready: {len(slides)} slides")
 
     print("\n🎙️  Generating audio and images...")
-    slides = generate_media(slides, paper["arxiv_id"], figures=figures, paper_title=paper["title"])
+    slides = generate_media(slides, paper["arxiv_id"], figures=figures)
     print("✅ Media generated")
 
     print("\n✍️  Generating caption...")
