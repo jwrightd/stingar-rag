@@ -79,7 +79,7 @@ def generate_media(slides: list[dict], arxiv_id: str, figures: list[str] | None 
         # --- Image ---
         image_path = str(out_dir / f"slide_{n}.png")
 
-        # Architecture slide: use scraped arXiv figure or gradient — never AI-generated
+        # Architecture slide: scraped figure preferred; generate with gpt-image-1 if unavailable
         if slide.get("role") == "architecture":
             import shutil
             from figures import best_architecture_figure
@@ -89,11 +89,10 @@ def generate_media(slides: list[dict], arxiv_id: str, figures: list[str] | None 
                 shutil.copy(fig_path, image_path)
                 slide["image_path"] = image_path
                 print(f"    ✅ Using scraped paper figure")
-            else:
-                print(f"    ℹ️  No scraped figure available, using gradient fallback")
-                _make_gradient_image(slide, image_path, width=1080, height=1920)
-                slide["image_path"] = image_path
-            continue
+                continue
+
+            # No scraped figure — fall through to gpt-image-1 generation below
+            print(f"    ℹ️  No scraped figure — generating architecture diagram with gpt-image-1")
 
         try:
             full_prompt = IMAGE_PROMPT_PREFIX + slide["image_prompt"]
