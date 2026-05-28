@@ -116,6 +116,11 @@ LANDMARK_PAPERS = [
 ]
 
 
+def _normalize_id(arxiv_id: str) -> str:
+    """Strip version suffix — '2605.28820v1' → '2605.28820'."""
+    return arxiv_id.split("v")[0]
+
+
 def _reputation_score(paper: dict) -> int:
     """Return a 0–3 reputation bonus."""
     bonus = 0
@@ -137,7 +142,7 @@ def _fetch_landmark_candidates(seen: set, arxiv_client: arxiv.Client, n: int = 1
     Randomly sample up to n unseen papers from LANDMARK_PAPERS,
     fetch their metadata from arXiv, and return them.
     """
-    unseen_ids = [pid for pid in LANDMARK_PAPERS if pid not in seen]
+    unseen_ids = [pid for pid in LANDMARK_PAPERS if _normalize_id(pid) not in seen]
     if not unseen_ids:
         return []
 
@@ -147,7 +152,7 @@ def _fetch_landmark_candidates(seen: set, arxiv_client: arxiv.Client, n: int = 1
         search = arxiv.Search(id_list=sample_ids)
         for result in arxiv_client.results(search):
             results.append({
-                "arxiv_id": result.entry_id.split("/")[-1],
+                "arxiv_id": _normalize_id(result.entry_id.split("/")[-1]),
                 "title": result.title,
                 "abstract": result.summary[:1000],
                 "authors": [a.name for a in result.authors[:5]],
@@ -162,13 +167,14 @@ def _fetch_landmark_candidates(seen: set, arxiv_client: arxiv.Client, n: int = 1
 
 def _load_cache() -> set:
     if CACHE_FILE.exists():
-        return set(json.loads(CACHE_FILE.read_text()))
+        # Normalize any legacy versioned IDs already in the cache
+        return {_normalize_id(i) for i in json.loads(CACHE_FILE.read_text())}
     return set()
 
 
 def _save_to_cache(arxiv_id: str):
     cache = _load_cache()
-    cache.add(arxiv_id)
+    cache.add(_normalize_id(arxiv_id))
     CACHE_FILE.parent.mkdir(exist_ok=True)
     CACHE_FILE.write_text(json.dumps(sorted(cache), indent=2))
 
@@ -194,7 +200,7 @@ def discover_paper() -> dict:
     recent = []
     for result in arxiv_client.results(search):
         recent.append({
-            "arxiv_id": result.entry_id.split("/")[-1],
+            "arxiv_id": _normalize_id(result.entry_id.split("/")[-1]),
             "title": result.title,
             "abstract": result.summary[:1000],
             "authors": [a.name for a in result.authors[:5]],
