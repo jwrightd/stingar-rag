@@ -1,5 +1,6 @@
 import os
 import sys
+from datetime import datetime
 from pathlib import Path
 from dotenv import load_dotenv
 
@@ -7,7 +8,7 @@ load_dotenv()
 
 from discovery import discover_paper
 from ingestion import ingest_paper
-from script_gen import generate_script
+from script_gen import generate_script, generate_caption
 from media import generate_media
 from video import assemble_video
 
@@ -44,8 +45,17 @@ def run_pipeline(test: bool = False):
     print(f"✅ Script ready: {len(slides)} slides")
 
     print("\n🎙️  Generating audio and images...")
-    slides = generate_media(slides, paper["arxiv_id"], figures=figures)
+    slides = generate_media(slides, paper["arxiv_id"], figures=figures, paper_title=paper["title"])
     print("✅ Media generated")
+
+    print("\n✍️  Generating caption...")
+    caption = generate_caption(slides, paper)
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    caption_path = Path("output") / paper["arxiv_id"] / f"caption_{timestamp}.txt"
+    caption_path.parent.mkdir(parents=True, exist_ok=True)
+    caption_path.write_text(caption, encoding="utf-8")
+    print(f"✅ Caption saved to: {caption_path}")
+    print(f"\n--- CAPTION PREVIEW ---\n{caption}\n-----------------------")
 
     print("\n🎬 Assembling video...")
     video_path = assemble_video(slides, paper, paper["arxiv_id"])

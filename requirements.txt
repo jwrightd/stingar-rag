@@ -12,3 +12,4 @@ numpy
 mutagen
 elevenlabs
 beautifulsoup4
+duckduckgo-search

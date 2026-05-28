@@ -107,6 +107,46 @@ def extract_paper_figures(arxiv_id: str, out_dir: Path, max_figures: int = 3) ->
     return saved_paths
 
 
+def search_architecture_figure(paper_title: str, out_dir: Path) -> str | None:
+    """
+    Web-search for an architecture diagram for this paper using DuckDuckGo images.
+    Returns local file path if a usable image is found, else None.
+    """
+    from duckduckgo_search import DDGS
+
+    out_dir = Path(out_dir)
+    out_dir.mkdir(parents=True, exist_ok=True)
+
+    query = f'"{paper_title}" architecture diagram'
+    print(f"  🔍 Searching web for architecture figure: {query}")
+
+    try:
+        results = list(DDGS().images(query, max_results=15))
+    except Exception as e:
+        print(f"  ⚠️  Web image search failed: {e}")
+        return None
+
+    for result in results:
+        url = result.get("image", "")
+        if not url:
+            continue
+        try:
+            resp = requests.get(url, timeout=10, headers={"User-Agent": "Mozilla/5.0"})
+            resp.raise_for_status()
+            img = Image.open(BytesIO(resp.content)).convert("RGB")
+            if img.width < 300 or img.height < 200:
+                continue
+            path = str(out_dir / "figure_web.png")
+            img.save(path, "PNG")
+            print(f"  ✅ Web figure downloaded: {img.width}×{img.height}px")
+            return path
+        except Exception:
+            continue
+
+    print("  ⚠️  No usable web figure found")
+    return None
+
+
 def best_architecture_figure(figures: list[str]) -> str | None:
     """Return the path to the largest figure (most likely to be a full architecture diagram)."""
     if not figures:
