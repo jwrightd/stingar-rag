@@ -25,7 +25,7 @@ TEST_PAPER = {
 }
 
 
-def run_pipeline(test: bool = False):
+def run_pipeline(test: bool = False, voice: str = "default"):
     if test:
         print("\n🧪 Test mode — using hardcoded paper (skipping arXiv discovery)")
         paper = TEST_PAPER
@@ -45,7 +45,7 @@ def run_pipeline(test: bool = False):
     print(f"✅ Script ready: {len(slides)} slides")
 
     print("\n🎙️  Generating audio and images...")
-    slides = generate_media(slides, paper["arxiv_id"], figures=figures)
+    slides = generate_media(slides, paper["arxiv_id"], figures=figures, voice=voice)
     print("✅ Media generated")
 
     print("\n✍️  Generating caption...")
@@ -66,4 +66,8 @@ def run_pipeline(test: bool = False):
 
 if __name__ == "__main__":
     test_mode = "--test" in sys.argv
-    run_pipeline(test=test_mode)
+    voice = "default"
+    for arg in sys.argv:
+        if arg.startswith("--voice="):
+            voice = arg.split("=", 1)[1]
+    run_pipeline(test=test_mode, voice=voice)

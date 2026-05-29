@@ -14,8 +14,13 @@ load_dotenv()
 oai_client = OpenAI()
 eleven_client = ElevenLabs(api_key=os.environ["ELEVENLABS_API_KEY"])
 
-# ElevenLabs voice — Rachel (calm, clear, American English)
-VOICE_ID = "8Ln42OXYupYsag45MAUy"
+# ElevenLabs voices
+VOICES = {
+    "default":  "8Ln42OXYupYsag45MAUy",
+    "stewie":   "a9wCVWyWIR4tjtYHFEtD",
+    "peter":    "CW34A5g0wxYU7JvOgFQl",
+}
+VOICE_ID = VOICES["default"]
 ELEVENLABS_MODEL = "eleven_multilingual_v2"
 
 IMAGE_PROMPT_PREFIX = (
@@ -55,9 +60,12 @@ def _get_mp3_duration(path: str) -> float:
     return audio.info.length
 
 
-def generate_media(slides: list[dict], arxiv_id: str, figures: list[str] | None = None) -> list[dict]:
+def generate_media(slides: list[dict], arxiv_id: str, figures: list[str] | None = None, voice: str = "default") -> list[dict]:
     out_dir = Path("output") / arxiv_id
     out_dir.mkdir(parents=True, exist_ok=True)
+
+    voice_id = VOICES.get(voice, VOICES["default"])
+    print(f"  🎙️  Using voice: {voice} ({voice_id})")
 
     for slide in slides:
         n = slide["slide_number"]
@@ -66,7 +74,7 @@ def generate_media(slides: list[dict], arxiv_id: str, figures: list[str] | None 
         # --- ElevenLabs TTS ---
         audio_path = str(out_dir / f"slide_{n}.mp3")
         audio_stream = eleven_client.text_to_speech.convert(
-            voice_id=VOICE_ID,
+            voice_id=voice_id,
             text=slide["narration"],
             model_id=ELEVENLABS_MODEL,
         )
