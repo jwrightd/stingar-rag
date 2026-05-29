@@ -25,8 +25,8 @@ def scheduled_run():
 
 
 if __name__ == "__main__":
-    _log("Scheduler started — will run daily at 08:00")
-    schedule.every().day.at("08:00").do(scheduled_run)
+    _log("Scheduler started — will run daily at 09:30")
+    schedule.every().day.at("09:30").do(scheduled_run)
     while True:
         schedule.run_pending()
         time.sleep(60)
