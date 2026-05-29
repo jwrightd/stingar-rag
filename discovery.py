@@ -127,8 +127,9 @@ def _arxiv_fetch_with_backoff(arxiv_client: arxiv.Client, search: arxiv.Search) 
         try:
             return list(arxiv_client.results(search))
         except arxiv.HTTPError as e:
-            if e.status == 429 and wait is not None:
-                print(f"  ⏳ arXiv rate-limited (429) — waiting {wait}s before retry {attempt + 1}/3...")
+            if e.status in (429, 503) and wait is not None:
+                label = "rate-limited (429)" if e.status == 429 else "unavailable (503)"
+                print(f"  ⏳ arXiv {label} — waiting {wait}s before retry {attempt + 1}/3...")
                 time.sleep(wait)
             else:
                 raise
