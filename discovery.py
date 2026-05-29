@@ -186,11 +186,12 @@ def discover_paper() -> dict:
     """
     arxiv_client = arxiv.Client(
         page_size=20,
-        delay_seconds=10,
-        num_retries=10,
+        delay_seconds=3,
+        num_retries=3,
     )
 
     # ── Recent papers ─────────────────────────────────────────────────────────
+    print("  📡 Fetching recent papers from arXiv...")
     search = arxiv.Search(
         query="cat:cs.LG OR cat:cs.AI OR cat:cs.CV OR cat:cs.CL",
         max_results=20,
@@ -219,6 +220,7 @@ def discover_paper() -> dict:
         print(f"  ℹ️  {skipped} already-seen recent paper(s) skipped.")
 
     # ── Landmark classics ─────────────────────────────────────────────────────
+    print("  📡 Fetching landmark paper candidates from arXiv...")
     classics = _fetch_landmark_candidates(seen, arxiv_client, n=10)
     print(f"  📚 {len(classics)} unseen landmark paper(s) added to candidate pool.")
 
@@ -240,6 +242,7 @@ def discover_paper() -> dict:
         print(f"  ⭐  {len(notable)} paper(s) with reputation bonus.")
 
     # ── GPT-4o-mini scoring ───────────────────────────────────────────────────
+    print(f"  🤖 Asking GPT-4o-mini to score {len(papers)} candidate(s)...")
     papers_text = "\n\n".join(
         (
             f"ID: {p['arxiv_id']}\n"
