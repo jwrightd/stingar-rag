@@ -328,9 +328,13 @@ def assemble_video(slides: list[dict], paper_metadata: dict, arxiv_id: str) -> s
     # Lo-fi background music
     if LOFI_PATH.exists():
         try:
+            import random
             from moviepy.audio.fx import AudioFadeIn, AudioFadeOut, AudioLoop
+            full_track = AudioFileClip(str(LOFI_PATH))
+            # Start at a random point so every video sounds different
+            start_offset = random.uniform(0, max(0, full_track.duration - raw_video.duration - 2))
             music = (
-                AudioFileClip(str(LOFI_PATH))
+                full_track.subclipped(start_offset)
                 .with_effects([AudioLoop(duration=raw_video.duration)])
                 .with_volume_scaled(0.15)
                 .with_effects([AudioFadeIn(1.0), AudioFadeOut(1.5)])
