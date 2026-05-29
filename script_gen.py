@@ -51,8 +51,10 @@ ROLE_INSTRUCTIONS = {
         "Make the viewer feel why this matters. Do not mention the paper title yet."
     ),
     "idea": (
-        "Introduce the paper's main contribution. Explain the core idea simply. "
-        "Start with 'This paper proposes...' or similar."
+        "Introduce the paper's main contribution. "
+        "You MUST say the full paper title naturally in your first sentence — "
+        "e.g. '\"Attention Is All You Need\" shows that...' or 'The paper \"LoRA\" proposes...'. "
+        "Then explain the core idea simply in the second sentence."
     ),
     "method": (
         "Explain how the method works at an intuitive level. Use an analogy if helpful. "
