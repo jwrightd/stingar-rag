@@ -187,7 +187,14 @@ def generate_caption(slides: list[dict], paper_metadata: dict) -> str:
         ],
     )
 
-    return response.choices[0].message.content.strip()
+    caption = response.choices[0].message.content.strip()
+
+    # Append arXiv link
+    arxiv_id = paper_metadata.get("arxiv_id", "")
+    if arxiv_id:
+        caption += f"\n\n📄 Full paper: https://arxiv.org/abs/{arxiv_id}"
+
+    return caption
 
 
 def generate_script(collection, paper_metadata: dict) -> list[dict]:
