@@ -1,5 +1,6 @@
 import json
 import random
+import time
 import arxiv
 from openai import OpenAI
 from pathlib import Path
@@ -116,6 +117,24 @@ LANDMARK_PAPERS = [
 ]
 
 
+def _arxiv_fetch_with_backoff(arxiv_client: arxiv.Client, search: arxiv.Search) -> list:
+    """
+    Iterate arxiv results with automatic retry on HTTP 429 (rate limit).
+    Waits 15s, 30s, 60s before giving up.
+    """
+    delays = [15, 30, 60]
+    for attempt, wait in enumerate(delays + [None]):
+        try:
+            return list(arxiv_client.results(search))
+        except arxiv.HTTPError as e:
+            if e.status == 429 and wait is not None:
+                print(f"  ⏳ arXiv rate-limited (429) — waiting {wait}s before retry {attempt + 1}/3...")
+                time.sleep(wait)
+            else:
+                raise
+    return []   # unreachable, but keeps linters happy
+
+
 def _normalize_id(arxiv_id: str) -> str:
     """Strip version suffix — '2605.28820v1' → '2605.28820'."""
     return arxiv_id.split("v")[0]
@@ -150,7 +169,7 @@ def _fetch_landmark_candidates(seen: set, arxiv_client: arxiv.Client, n: int = 1
     results = []
     try:
         search = arxiv.Search(id_list=sample_ids)
-        for result in arxiv_client.results(search):
+        for result in _arxiv_fetch_with_backoff(arxiv_client, search):
             results.append({
                 "arxiv_id": _normalize_id(result.entry_id.split("/")[-1]),
                 "title": result.title,
@@ -199,7 +218,7 @@ def discover_paper() -> dict:
         sort_order=arxiv.SortOrder.Descending,
     )
     recent = []
-    for result in arxiv_client.results(search):
+    for result in _arxiv_fetch_with_backoff(arxiv_client, search):
         recent.append({
             "arxiv_id": _normalize_id(result.entry_id.split("/")[-1]),
             "title": result.title,
