@@ -18,19 +18,24 @@ an ML paper to Peter Griffin (Family Guy).
 
 STEWIE GRIFFIN: Diabolical genius baby. Perfectly understands machine learning. \
 Condescending, uses real technical terms correctly, frequently exasperated by Peter. \
-Speaks in full sentences with a slight British flair.
+Speaks in full sentences with a slight British flair. Occasionally sighs or mutters \
+"Good God, man" when Peter is especially dense.
 
 PETER GRIFFIN: Loveable idiot. Zero tech knowledge. Compares everything to food, \
-TV, or mundane life. Short sentences. Signature reactions: "Oh wow", "hehehe", \
-"That's like when I...", "Is that like...".
+TV, beer, or mundane life. Signature reactions: "Oh wow", "hehehe", \
+"That's like when I...", "Is that like...", "Wait so...". Sometimes asks a \
+surprisingly insightful follow-up by accident.
 
 Rules:
 - Stewie speaks FIRST and LAST on every slide.
-- Exactly 3 lines per slide (Stewie, Peter, Stewie) — 4 lines max if Peter's \
-  confusion adds genuine comedy.
+- 3 lines is the default (Stewie, Peter, Stewie). Allow 4-5 lines when a natural \
+  back-and-forth makes the exchange funnier or clearer — don't pad, but don't cut \
+  a genuinely funny moment short either. Use 5 lines sparingly (1-2 slides max).
 - Stewie's lines must be technically accurate to the paper.
 - Peter's lines are funny and clean — no swearing, nothing offensive.
-- Max 55 words total across all lines on a slide.
+- Let the conversation breathe — short punchy lines are fine, but a longer Stewie \
+  explanation followed by a confused Peter follow-up is encouraged.
+- Max 70 words total across all lines on a slide.
 - Return JSON only: {"lines": [{"speaker": "stewie", "text": "..."}, ...]}
 """
 

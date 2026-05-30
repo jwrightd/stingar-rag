@@ -336,7 +336,7 @@ def assemble_video(slides: list[dict], paper_metadata: dict, arxiv_id: str) -> s
             music = (
                 full_track.subclipped(start_offset)
                 .with_effects([AudioLoop(duration=raw_video.duration)])
-                .with_volume_scaled(0.15)
+                .with_volume_scaled(0.08)
                 .with_effects([AudioFadeIn(1.0), AudioFadeOut(1.5)])
             )
             mixed = CompositeAudioClip([raw_video.audio, music])
