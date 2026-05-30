@@ -61,11 +61,15 @@ def _silence_clip(duration: float, fps: int = 44100) -> AudioArrayClip:
     return AudioArrayClip(frames, fps=fps)
 
 
-def _generate_dialogue_audio(slide: dict, out_dir: Path) -> tuple[str, float]:
+def _generate_dialogue_audio(slide: dict, out_dir: Path) -> tuple[str, float, list]:
     """
     Generate one MP3 per dialogue line, then stitch them together
     with a short pause between each line.
-    Returns (combined_audio_path, total_duration_seconds).
+    Returns (combined_audio_path, total_duration_seconds, line_timings).
+
+    line_timings: [{"start": float, "end": float, "speaker": str}, ...]
+    aligned to the combined audio timeline — used to show/hide character
+    images in the video.
     """
     line_paths = []
     for i, line in enumerate(slide["lines"]):
@@ -84,6 +88,19 @@ def _generate_dialogue_audio(slide: dict, out_dir: Path) -> tuple[str, float]:
         line_paths.append(line_path)
         print(f"    🎙️  {speaker.capitalize()}: \"{line['text'][:50]}...\"" if len(line["text"]) > 50
               else f"    🎙️  {speaker.capitalize()}: \"{line['text']}\"")
+
+    # Measure each line's duration while files still exist
+    line_durations = [MP3(p).info.length for p in line_paths]
+
+    # Build timeline: start/end for each speaker turn in the combined audio
+    line_timings = []
+    cursor = 0.0
+    for i, dur in enumerate(line_durations):
+        speaker = slide["lines"][i]["speaker"].lower()
+        line_timings.append({"start": cursor, "end": cursor + dur, "speaker": speaker})
+        cursor += dur
+        if i < len(line_durations) - 1:
+            cursor += LINE_PAUSE_SECONDS
 
     # Stitch: clip, pause, clip, pause, ...
     clips = []
@@ -104,7 +121,7 @@ def _generate_dialogue_audio(slide: dict, out_dir: Path) -> tuple[str, float]:
             pass
 
     duration = MP3(combined_path).info.length
-    return combined_path, duration
+    return combined_path, duration, line_timings
 
 
 def generate_dialogue_media(slides: list[dict], arxiv_id: str, figures: list[str] | None = None) -> list[dict]:
@@ -120,9 +137,10 @@ def generate_dialogue_media(slides: list[dict], arxiv_id: str, figures: list[str
         print(f"  Generating media for dialogue slide {n}/6: {slide['title']}...")
 
         # ── Audio: interleaved Stewie + Peter ────────────────────────────────
-        audio_path, duration = _generate_dialogue_audio(slide, out_dir)
+        audio_path, duration, line_timings = _generate_dialogue_audio(slide, out_dir)
         slide["audio_path"] = audio_path
         slide["duration_seconds"] = duration
+        slide["line_timings"] = line_timings
 
         # ── Image ────────────────────────────────────────────────────────────
         image_path = str(out_dir / f"slide_{n}.png")

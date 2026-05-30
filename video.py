@@ -287,6 +287,30 @@ def _make_slide_clip(slide: dict, composite_path: str) -> CompositeVideoClip:
         zoom_in = slide["slide_number"] % 2 == 0
         base = _apply_zoom_punch(base, zoom_in=zoom_in)
 
+    # Character overlays (dialogue pipeline only — triggered by line_timings)
+    char_clips = []
+    if slide.get("line_timings"):
+        try:
+            from characters import load_characters, character_position
+            chars = load_characters()
+            for timing in slide["line_timings"]:
+                spk = timing["speaker"]
+                if spk not in chars:
+                    continue
+                char_info = chars[spk]
+                x, y = character_position(spk, char_info)
+                t_start = timing["start"]
+                t_end   = min(timing["end"], duration - 0.05)
+                if t_end <= t_start:
+                    continue
+                char_clips.append(
+                    ImageClip(char_info["array"], duration=t_end - t_start)
+                    .with_start(t_start)
+                    .with_position((x, y))
+                )
+        except Exception as e:
+            print(f"    ⚠️  Character overlay failed: {e}")
+
     # Captions
     caption_clips = []
     if slide.get("audio_path"):
@@ -299,7 +323,8 @@ def _make_slide_clip(slide: dict, composite_path: str) -> CompositeVideoClip:
             print(f"    ⚠️  Caption generation failed: {e}")
 
     audio_clip = AudioFileClip(slide["audio_path"])
-    layers = [base] + caption_clips
+    # Layer order: background → characters → captions (captions always on top)
+    layers = [base] + char_clips + caption_clips
     composite = CompositeVideoClip(layers, size=(W, H))
     return composite.with_audio(audio_clip)
 
