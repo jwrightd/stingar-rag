@@ -113,7 +113,7 @@ def character_position(speaker: str, char_info: dict) -> tuple[int, int]:
     Stewie on the left, Peter on the right, both bottom-anchored,
     never touching the frame edge.
     """
-    if speaker == "stewie":
+    if speaker == "peter":
         x = SIDE_MARGIN
     else:
         x = CANVAS_W - char_info["w"] - SIDE_MARGIN
