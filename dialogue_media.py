@@ -9,6 +9,7 @@ from pathlib import Path
 from mutagen.mp3 import MP3
 from openai import OpenAI
 from elevenlabs.client import ElevenLabs
+from elevenlabs import VoiceSettings
 from PIL import Image, ImageDraw
 from moviepy import AudioFileClip, concatenate_audioclips
 from moviepy.audio.AudioClip import AudioArrayClip
@@ -24,7 +25,8 @@ VOICES = {
     "peter":  "CW34A5g0wxYU7JvOgFQl",
 }
 ELEVENLABS_MODEL = "eleven_multilingual_v2"
-LINE_PAUSE_SECONDS = 0.35   # gap between dialogue lines
+TTS_SPEED = 1.08            # slightly faster, punchier delivery (range 0.7–1.2)
+LINE_PAUSE_SECONDS = 0.25   # gap between dialogue lines (tightened from 0.35)
 
 IMAGE_PROMPT_PREFIX = (
     "Clean, professional diagram illustration style, white background, "
@@ -81,6 +83,7 @@ def _generate_dialogue_audio(slide: dict, out_dir: Path) -> tuple[str, float, li
             voice_id=voice_id,
             text=line["text"],
             model_id=ELEVENLABS_MODEL,
+            voice_settings=VoiceSettings(speed=TTS_SPEED),
         )
         with open(line_path, "wb") as f:
             for chunk in audio_stream:

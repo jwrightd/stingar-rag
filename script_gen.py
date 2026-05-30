@@ -88,10 +88,11 @@ def _generate_slide(role: str, title: str, context_chunks: list[str], paper_titl
             {
                 "role": "system",
                 "content": (
-                    "You write narration scripts for 60-second Instagram Reel ML paper explainers. "
+                    "You write narration scripts for FAST ~40-second Instagram Reel ML paper explainers. "
                     "Your audience knows ML basics but hasn't read the paper. "
                     "Avoid jargon. Be punchy, fast-paced, and engaging. "
-                    "Each slide gets EXACTLY 2 sentences, max 30 words total — every word must earn its place. "
+                    "Each slide gets 1-2 SHORT sentences, MAX 16 words total — every word must earn its place. "
+                    "Ruthlessly cut filler. Lead with the most interesting fact. "
                     "Return JSON: {\"narration\": \"...\", \"image_prompt\": \"...\"}"
                 ),
             },
@@ -102,7 +103,7 @@ def _generate_slide(role: str, title: str, context_chunks: list[str], paper_titl
                     f"Context from the paper:\n{context}\n\n"
                     f"Slide role: {title}\n"
                     f"Instructions: {instructions}\n\n"
-                    "Write EXACTLY 2 punchy sentences (max 30 words) of narration. "
+                    "Write 1-2 punchy sentences (MAX 16 words total) of narration. "
                     "Then write a DALL-E image prompt for a clean portrait-orientation diagram "
                     "(no text, no equations, use shapes/arrows/icons, bold colours)."
                 ),

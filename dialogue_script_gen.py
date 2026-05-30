@@ -27,15 +27,14 @@ TV, beer, or mundane life. Signature reactions: "Oh wow", "hehehe", \
 surprisingly insightful follow-up by accident.
 
 Rules:
+- This is a FAST ~40-second Reel. Keep every exchange SNAPPY.
 - Stewie speaks FIRST and LAST on every slide.
-- 3 lines is the default (Stewie, Peter, Stewie). Allow 4-5 lines when a natural \
-  back-and-forth makes the exchange funnier or clearer — don't pad, but don't cut \
-  a genuinely funny moment short either. Use 5 lines sparingly (1-2 slides max).
+- 3 lines is the default (Stewie, Peter, Stewie). Allow a 4th line ONLY when \
+  Peter's confusion genuinely adds a laugh — never to pad.
+- Keep lines SHORT — one punchy sentence each. No monologues.
 - Stewie's lines must be technically accurate to the paper.
 - Peter's lines are funny and clean — no swearing, nothing offensive.
-- Let the conversation breathe — short punchy lines are fine, but a longer Stewie \
-  explanation followed by a confused Peter follow-up is encouraged.
-- Max 70 words total across all lines on a slide.
+- MAX 38 words total across ALL lines on a slide. Cut ruthlessly.
 - Return JSON only: {"lines": [{"speaker": "stewie", "text": "..."}, ...]}
 """
 

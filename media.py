@@ -6,6 +6,7 @@ from pathlib import Path
 from mutagen.mp3 import MP3
 from openai import OpenAI
 from elevenlabs.client import ElevenLabs
+from elevenlabs import VoiceSettings
 from PIL import Image, ImageDraw
 from dotenv import load_dotenv
 
@@ -22,6 +23,7 @@ VOICES = {
 }
 VOICE_ID = VOICES["default"]
 ELEVENLABS_MODEL = "eleven_multilingual_v2"
+TTS_SPEED = 1.08   # slightly faster, punchier delivery (range 0.7–1.2)
 
 IMAGE_PROMPT_PREFIX = (
     "Clean, professional diagram illustration style, white background, "
@@ -77,6 +79,7 @@ def generate_media(slides: list[dict], arxiv_id: str, figures: list[str] | None 
             voice_id=voice_id,
             text=slide["narration"],
             model_id=ELEVENLABS_MODEL,
+            voice_settings=VoiceSettings(speed=TTS_SPEED),
         )
         with open(audio_path, "wb") as f:
             for chunk in audio_stream:
