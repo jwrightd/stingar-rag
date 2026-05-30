@@ -268,9 +268,25 @@ def _make_slide_image(slide: dict, out_path: str):
 
 def _make_title_card(slides: list[dict], out_path: str, duration: float = 2.5) -> ImageClip:
     first_slide = slides[0]
-    hook_text = first_slide.get("hook_text", first_slide["narration"][:60])
-    bg_path = first_slide.get("image_path")  # may be None if called before media gen
+    hook_text = first_slide.get("hook_text", first_slide.get("narration", "")[:60])
+    bg_path = first_slide.get("image_path")
     _make_title_card_image(first_slide.get("title", ""), hook_text, bg_path, out_path)
+
+    # Dialogue pipeline: paste both characters onto the thumbnail
+    if any(s.get("line_timings") for s in slides):
+        try:
+            from characters import load_characters, character_position
+            img = Image.open(out_path).convert("RGBA")
+            chars = load_characters()
+            for speaker in ["peter", "stewie"]:   # peter first → stewie renders on top
+                info = chars[speaker]
+                x, y = character_position(speaker, info)
+                char_img = Image.fromarray(info["array"])
+                img.paste(char_img, (x, y), mask=char_img.split()[3])
+            img.convert("RGB").save(out_path, "PNG")
+        except Exception as e:
+            print(f"    ⚠️  Character thumbnail overlay failed: {e}")
+
     clip = ImageClip(out_path, duration=duration)
     return _apply_ken_burns(clip, zoom_in=True)
 
